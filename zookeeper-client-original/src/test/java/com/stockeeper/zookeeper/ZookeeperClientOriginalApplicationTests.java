@@ -49,6 +49,12 @@ public class ZookeeperClientOriginalApplicationTests {
         log.info(DigestAuthenticationProvider.generateDigest("admin:admin123"));
     }
 
+    /**
+     * 模拟注册中心场景
+     *
+     * @throws KeeperException
+     * @throws InterruptedException
+     */
     @Test
     void testConfigCenter() throws KeeperException, InterruptedException {
         ConfigDto configDto = new ConfigDto("张三", 18);
@@ -71,7 +77,59 @@ public class ZookeeperClientOriginalApplicationTests {
         Thread.sleep(Integer.MAX_VALUE);
     }
 
+    /**
+     * 模拟乐观锁机制
+     *
+     * @throws KeeperException
+     * @throws InterruptedException
+     */
+    @Test
+    void testOptimisticLocking() throws KeeperException, InterruptedException {
+        String nodePath = "/optimistic-locking";
+        Stat exists = zookeeper.exists(nodePath, null);
+        if (exists == null) {
+            zookeeper.create(nodePath, "optimistic-locking-data1".getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+        }
 
+        // 先获取当前数据版本
+        Stat stat = new Stat();
+        zookeeper.getData(nodePath, false, stat);
+
+        // 修改时与当前数据版本比较，如果版本一致，则允许修改
+        int version = stat.getVersion();
+        zookeeper.setData(nodePath, "optimistic-locking-data2".getBytes(), version);
+
+        Thread.sleep(Integer.MAX_VALUE);
+    }
+
+    /**
+     * 异步API调用
+     *
+     * @throws KeeperException
+     * @throws InterruptedException
+     */
+    @Test
+    void testAsyncAPI() throws KeeperException, InterruptedException {
+        String nodePath = "/async-api";
+        Stat exists = zookeeper.exists(nodePath, null);
+        if (exists == null) {
+            zookeeper.create(nodePath, "async-api-data".getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+        }
+
+        // 模拟上下文
+        JSONObject context = new JSONObject();
+        context.put("userId", 1);
+
+        zookeeper.getData(nodePath, false, (rc, path, ctx, data, stat) -> {
+            // main-EventThread
+            Thread thread = Thread.currentThread();
+            log.info("Thread Name: {}, rc: {}, path: {}, ctx: {}, data: {}, stat: {}", thread.getName(), rc, path, ctx, new String(data), stat);
+        }, context);
+
+        log.info("Over......");
+
+        Thread.sleep(Integer.MAX_VALUE);
+    }
 
 
 }
