@@ -3,11 +3,13 @@ package com.stockeeper.zookeeper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.server.auth.DigestAuthenticationProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -36,9 +38,12 @@ public class ZookeeperClientOriginalApplicationTests {
         countDownLatch.await();
     }
 
+    /**
+     * 生成 Digest 密钥
+     */
     @Test
-    void test() {
-        log.info("123123");
+    void testGenerateDigest() throws NoSuchAlgorithmException {
+        log.info(DigestAuthenticationProvider.generateDigest("admin:admin123"));
     }
 
 
