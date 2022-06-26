@@ -1,8 +1,11 @@
 package com.stockeeper.zookeeper;
 
+import com.alibaba.fastjson.JSONObject;
+import com.stockeeper.zookeeper.dto.ConfigDto;
+import com.stockeeper.zookeeper.watcher.ConfigWatcher;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.*;
+import org.apache.zookeeper.data.Stat;
 import org.apache.zookeeper.server.auth.DigestAuthenticationProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,6 +47,28 @@ public class ZookeeperClientOriginalApplicationTests {
     @Test
     void testGenerateDigest() throws NoSuchAlgorithmException {
         log.info(DigestAuthenticationProvider.generateDigest("admin:admin123"));
+    }
+
+    @Test
+    void testConfigCenter() throws KeeperException, InterruptedException {
+        ConfigDto configDto = new ConfigDto("张三", 18);
+
+        // 幂等操作，创建之前先删除
+        Stat exists = zookeeper.exists(ConfigWatcher.CONFIG_NODE_PATH, null);
+        if (exists != null) {
+            zookeeper.delete(ConfigWatcher.CONFIG_NODE_PATH, exists.getVersion());
+        }
+
+        // 创建节点
+        zookeeper.create(ConfigWatcher.CONFIG_NODE_PATH, JSONObject.toJSONBytes(configDto), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+
+        // 获取节点数据并注册监听
+        byte[] configData = zookeeper.getData(ConfigWatcher.CONFIG_NODE_PATH, new ConfigWatcher(zookeeper), null);
+
+        ConfigDto originConfig = JSONObject.parseObject(configData, ConfigDto.class);
+        log.info("初始化配置：{}", originConfig);
+
+        Thread.sleep(Integer.MAX_VALUE);
     }
 
 
