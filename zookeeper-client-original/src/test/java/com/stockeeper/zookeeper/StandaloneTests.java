@@ -22,7 +22,7 @@ import java.util.concurrent.CountDownLatch;
  */
 @Slf4j
 @SpringBootTest
-public class ZookeeperClientOriginalApplicationTests {
+public class StandaloneTests {
 
     private static final String ZOOKEEPER_SERVER_ADDRESS = "192.168.175.175:2181";
     private static final int SESSION_TIMEOUT = 5000;
