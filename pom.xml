@@ -6,6 +6,7 @@
     <modules>
         <module>zookeeper-client-original</module>
         <module>zookeeper-client-curator</module>
+        <module>zookeeper-distributed-lock</module>
     </modules>
     <parent>
         <groupId>org.springframework.boot</groupId>
