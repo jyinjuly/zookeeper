@@ -22,7 +22,7 @@ public class ProductController {
     private CuratorFramework curatorFramework;
 
     @GetMapping("/deduct")
-    public void test() throws Exception {
+    public void deduct() throws Exception {
         // zookeeper分布式锁
         InterProcessMutex processMutex = new InterProcessMutex(curatorFramework, "/product_1");
 
